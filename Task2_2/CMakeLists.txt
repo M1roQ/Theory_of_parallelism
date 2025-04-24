@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(MatrixVectorBenchmark)
+project(MyIntegration)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -13,6 +13,6 @@ set(SOURCE_FILES
 )
 
 # исполняемый файл
-add_executable(MatrixVectorBenchmark ${SOURCE_FILES})
+add_executable(MyIntegration ${SOURCE_FILES})
 
-target_link_libraries(MatrixVectorBenchmark OpenMP::OpenMP_CXX)
+target_link_libraries(MyIntegration OpenMP::OpenMP_CXX)

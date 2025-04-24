@@ -7,7 +7,7 @@
 #include <chrono>
 #include <memory>
 
-void initialization_serial(std::unique_ptr<double[]>& a, std::unique_ptr<double[]>& b, std::unique_ptr<double[]>& c, int m, int n) {
+void initialization_serial(std::shared_ptr<double[]> a, std::shared_ptr<double[]> b, std::shared_ptr<double[]> c, int m, int n) {
     for (int i = 0; i < m; i++) {
         c[i] = 0.0;
         for (int j = 0; j < n; j++) {
@@ -19,7 +19,7 @@ void initialization_serial(std::unique_ptr<double[]>& a, std::unique_ptr<double[
     }
 }
 
-void initialization_parallel(std::unique_ptr<double[]>& a, std::unique_ptr<double[]>& b, std::unique_ptr<double[]>& c, int m, int n, int num_threads) {
+void initialization_parallel(std::shared_ptr<double[]> a, std::shared_ptr<double[]> b, std::shared_ptr<double[]> c, int m, int n, int num_threads) {
     #pragma omp parallel num_threads(num_threads)
     {
         int thread_id = omp_get_thread_num();
@@ -27,7 +27,7 @@ void initialization_parallel(std::unique_ptr<double[]>& a, std::unique_ptr<doubl
 
         int chunk_size = m / total_threads;
         int start_row = thread_id * chunk_size;
-        int end_row = (thread_id == total_threads - 1) ? (m-1) : (start_row + chunk_size - 1);
+        int end_row = (thread_id == total_threads - 1) ? (m - 1) : (start_row + chunk_size - 1);
 
         for (int i = start_row; i < end_row; i++) {
             c[i] = 0.0;
@@ -42,17 +42,17 @@ void initialization_parallel(std::unique_ptr<double[]>& a, std::unique_ptr<doubl
     }
 }
 
-
-void matrix_vector_product_serial(const std::unique_ptr<double[]>& a, const std::unique_ptr<double[]>& b, std::unique_ptr<double[]>& c, int m, int n) {
+void matrix_vector_product_serial(std::shared_ptr<double[]> a, std::shared_ptr<double[]> b, std::shared_ptr<double[]> c, int m, int n) {
     for (int i = 0; i < m; i++) {
-        c[i] = 0.0;
+        double temp = 0.0;
         for (int j = 0; j < n; j++) {
-            c[i] += a[i * n + j] * b[j];
+            temp += a[i * n + j] * b[j];
         }
+        c[i] = temp;
     }
 }
 
-void matrix_vector_product_parallel(const std::unique_ptr<double[]>& a, const std::unique_ptr<double[]>& b, std::unique_ptr<double[]>& c, int m, int n, int num_threads) {
+void matrix_vector_product_parallel(std::shared_ptr<double[]> a, std::shared_ptr<double[]> b, std::shared_ptr<double[]> c, int m, int n, int num_threads) {
     #pragma omp parallel num_threads(num_threads)
     {
         int current_thread_number = omp_get_thread_num();
@@ -83,51 +83,51 @@ int main() {
 
     for (int size : sizes) {
         int m = size, n = size;
-        
+
         std::cout << "Running for size: " << size << "x" << size << std::endl;
 
         std::cout << "_______START SERIAL_______" << std::endl;
         double serial_time = 0.0;
         for (int i = 0; i < 10; ++i) {
-            std::unique_ptr<double[]> a(new double[m * n]);
-            std::unique_ptr<double[]> b(new double[n]);
-            std::unique_ptr<double[]> c(new double[m]);
-            
+            auto a = std::shared_ptr<double[]>(new double[m * n]);
+            auto b = std::shared_ptr<double[]>(new double[n]);
+            auto c = std::shared_ptr<double[]>(new double[m]);
+
             initialization_serial(a, b, c, m, n);
-            
+
             auto start = std::chrono::steady_clock::now();
             matrix_vector_product_serial(a, b, c, m, n);
             auto end = std::chrono::steady_clock::now();
-            
-            auto elapsed_time =std::chrono::duration_cast<std::chrono::milliseconds>( end - start);
+
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
             serial_time += elapsed_time.count();
         }
         serial_time /= 10.0;
         file << size << "," << serial_time;
-        std::cout << "serial time = " << serial_time << " s" << std::endl;
+        std::cout << "serial time = " << serial_time << " ms" << std::endl;
 
         std::cout << "_______START PARALLEL_______" << std::endl;
         for (int threads : thread_counts) {
             double parallel_time = 0.0;
 
             for (int i = 0; i < 10; ++i) {
-                std::unique_ptr<double[]> a(new double[m * n]);
-                std::unique_ptr<double[]> b(new double[n]);
-                std::unique_ptr<double[]> c(new double[m]);
-                
+                auto a = std::shared_ptr<double[]>(new double[m * n]);
+                auto b = std::shared_ptr<double[]>(new double[n]);
+                auto c = std::shared_ptr<double[]>(new double[m]);
+
                 initialization_parallel(a, b, c, m, n, threads);
-                
+
                 auto start = std::chrono::steady_clock::now();
                 matrix_vector_product_parallel(a, b, c, m, n, threads);
                 auto end = std::chrono::steady_clock::now();
-                
-                auto elapsed_time =std::chrono::duration_cast<std::chrono::milliseconds>( end - start);
+
+                auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
                 parallel_time += elapsed_time.count();
             }
 
             parallel_time /= 10.0;
             double speedup = serial_time / parallel_time;
-            std::cout << threads << " threads: " << parallel_time << " s, speedup = " << speedup << std::endl;
+            std::cout << threads << " threads: " << parallel_time << " ms, speedup = " << speedup << std::endl;
             file << "," << parallel_time << "," << speedup;
         }
 
