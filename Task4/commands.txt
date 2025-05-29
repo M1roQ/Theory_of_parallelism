@@ -1,0 +1,3 @@
+ .\task4_env\Scripts\Activate.ps1 
+
+ python main.py --camIndex 1 --width 720 --height 480 --fps 15  
