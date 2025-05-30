@@ -69,8 +69,8 @@ int main(int argc, char const *argv[]) {
     double error = 1.0;
     int iteration = 0;
 
-    std::unique_ptr<double[]> currentMatrix(new double[matrixSize * matrixSize]);
-    std::unique_ptr<double[]> newMatrix(new double[matrixSize * matrixSize]);
+    std::unique_ptr<double[]> currentMatrix(std::make_unique<double[]>(matrixSize * matrixSize));
+    std::unique_ptr<double[]> newMatrix(std::make_unique<double[]>(matrixSize * matrixSize));
 
     std::fill(currentMatrix.get(), currentMatrix.get() + matrixSize * matrixSize, 0.0);
     std::fill(newMatrix.get(), newMatrix.get() + matrixSize * matrixSize, 0.0);

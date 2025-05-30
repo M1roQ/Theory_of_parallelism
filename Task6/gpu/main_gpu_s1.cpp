@@ -72,9 +72,9 @@ int main(int argc, char const *argv[]) {
 
     double error = 1.0;
     int iteration = 0;
-
-    std::unique_ptr<double[]> matrix(new double[size * size]);
-    std::unique_ptr<double[]> newMatrix(new double[size * size]);
+    
+    std::unique_ptr<double[]> matrix(std::make_unique<double[]>(size * size));
+    std::unique_ptr<double[]> newMatrix(std::make_unique<double[]>(size * size));
 
     initializeMatrix(matrix, size);
     initializeMatrix(newMatrix, size);

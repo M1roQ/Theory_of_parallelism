@@ -161,9 +161,9 @@ int main(int argc, char const *argv[]) {
     double error =1.0;
     int iter = 0;
 
-    std::unique_ptr<double[]> A(new double[N*N]);
-    std::unique_ptr<double[]> Anew(new double[N*N]);
-    std::unique_ptr<double[]> B(new double[N*N]);
+    std::unique_ptr<double[]> A(std::make_unique<double[]>(N * N));
+    std::unique_ptr<double[]> Anew(std::make_unique<double[]>(N * N));
+    std::unique_ptr<double[]> B(std::make_unique<double[]>(N * N));
 
     initMatrix(std::ref(A),N);
     initMatrix(std::ref(Anew),N);
